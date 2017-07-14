@@ -28,14 +28,7 @@ object ScalaConvert {
 
       //抽取出Element中所有链接
       def links(protocol:String="http://"):Seq[String] ={
-        e.map{
-          el=>
-            if(el.nodeName()=="a"){
-              Some(el)
-            }else{
-              None
-            }
-        }.map{
+        e.select("a[href]").map{
           e=>
             val link = e.attr("href")
 
@@ -56,7 +49,7 @@ object ScalaConvert {
       }
 
 
-      def select(xpath:String) ={
+      def findByXPath(xpath:String):Seq[Element] ={
         val qs = XPathParser.parse(xpath)
         qs.foldLeft(Seq[Element](e)){
           (es,xq)=>
@@ -66,7 +59,7 @@ object ScalaConvert {
             }
         }
       }
-      def query(root: Element,xq:XPathQueue): Seq[Element] ={
+      private def query(root: Element,xq:XPathQueue): Seq[Element] ={
         val evaluator = new PredicateEvaluator(xq.predicate)
         xq.selecting match {
           case Selecting.SelectingAllChild =>{
@@ -134,6 +127,20 @@ object ScalaConvert {
         this.e
       }
 
+    /**
+      * get tagName with attributes
+      * @return
+      */
+      def getFullName():String = {
+        val tagName = e.tagName()
+        val attrs = e.attributes().toList.foldLeft(""){
+          (str,attr)=>
+            val key = attr.getKey
+            val value = attr.getValue
+            s"$str $key='$value'"
+        }
+        s"<$tagName$attrs>"
+      }
 
   }
 }
