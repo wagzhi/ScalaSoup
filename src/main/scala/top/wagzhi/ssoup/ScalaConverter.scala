@@ -26,8 +26,17 @@ object ScalaConvert {
         }
       }
 
+      def images():Seq[String]={
+        e.select("img[src]").map(_.attr("src")).filter(_.length>0)
+      }
+
+      val reg = "^http[s]?://[a-z.]+/".r
+      def getHost(baseUri:String)={
+        reg.findFirstMatchIn(baseUri).map(_.toString).getOrElse("")
+      }
       //抽取出Element中所有链接
       def links(protocol:String="http://"):Seq[String] ={
+
         e.select("a[href]").map{
           e=>
             val link = e.attr("href")
@@ -37,9 +46,10 @@ object ScalaConvert {
             }else if (link.startsWith("http://") || link.startsWith("https")){ //完整路径
               link
             }else if (link.startsWith("/")) {//绝对路径
-              e.baseUri()+link
+              getHost(e.baseUri())+link.substring(1)
             }else if(link.startsWith("./")){ //相对路径
-              e.baseUri().lastIndexOf("/") +link
+              val lastIndex = e.baseUri().lastIndexOf("/")
+              e.baseUri().substring(0,lastIndex) +link.substring(1)
             }
             else{ //未知路径，过滤掉
               ""
